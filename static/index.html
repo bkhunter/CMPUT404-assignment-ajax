@@ -31,15 +31,24 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
+var colors = ['green','purple','gold','white','chartreuse'];
+var colorIndex = 0;  
+    
+    
+
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    var response;
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
                     //XXX: Pass the data to the callback!
+		    response = JSON.parse(xhr.responseText);
+		    callback(response);
                 }
             } 
             catch(e) {
@@ -49,6 +58,9 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
     };
     //XXX: POST to a URL
     //XXX: set the mimetype and the accept headers!
+    xhr.overrideMimeType("application/json");
+    xhr.setRequestHeader('Accept', "application/json");
+    xhr.send(JSON.stringify(objects));
     // Remember to use application/json !
 }
 
@@ -70,9 +82,36 @@ function drawCircle(context,entity) {
     }
 }
 
+//XXX: TODO Make this prettier!
+function drawSpike(context,entity) {
+    with(context) {
+        beginPath();              
+        lineWidth = 5;
+        var x = entity["x"];
+        var y = entity["y"];
+        //moveTo(x,y);
+        fillStyle = entity["colour"];
+        strokeStyle = fillStyle;
+	context.fillRect(x,y,150,75);                              
+    }
+}
+
+
+function getNextColor() {
+    colorIndex += 1;
+    if (colorIndex > 4) {
+	colorIndex = 0;
+    }
+    return colors[colorIndex];
+}
+
 function prepEntity(entity) {
+    var nextColor = getNextColor();
+
     if (!entity["colour"]) {
         entity["colour"] = "#FF0000";
+    } else {
+	entity["colour"] = nextColor;
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -95,6 +134,7 @@ function renderFrame() {
     for (var key in world) {
         var entity = world[key];
         drawCircle(context,prepEntity(entity));
+	drawSpike(context,prepEntity(entity));
     }
 }
 
@@ -136,8 +176,17 @@ function getPosition(e) {
 
 function addEntity(entity, data) {
     world[entity] = data;
-    drawNextFrame(); // (but should we?)
+    prepEntity(world[entity])
+    var url = 'http://127.0.0.1:5000/entity/' + (entity.toString() || entity)
+    var objects = data
+    var callback = function(data) {
+	
+	world[entity] = data;
+	drawNextFrame();
+    }   
+    var res = sendJSONXMLHTTPRequest(url, objects, callback)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
+    
 
 }
 
@@ -262,11 +311,22 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    drawFrame();
+    var xhr = new XMLHttpRequest();
+    var url = 'http://127.0.0.1:5000/world';
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            if (xhr.status==200) {
+		world = JSON.parse(xhr.responseText);
+		renderFrame();
+	    }
+	}
+    };
+    xhr.send(null);
 }
 
 // 30 frames per second
-setInterval( update, 1000/30.0);
+setInterval( update, 10000/30.0);
 
 
 
