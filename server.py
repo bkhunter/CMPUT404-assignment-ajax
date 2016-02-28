@@ -103,7 +103,7 @@ def get_entity(entity):
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     myWorld.clear()
-    return "cleared!"
+    return flask.redirect("/")
     
 
 if __name__ == "__main__":

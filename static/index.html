@@ -31,10 +31,8 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
-var colors = ['green','purple','gold','white','chartreuse'];
-var colorIndex = 0;  
-    
-    
+var colors = ['green','purple','gold','white'];
+var colorIndex = 0;    
 
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
@@ -67,51 +65,52 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
 
 world = {};
 
-//XXX: TODO Make this prettier!
-function drawCircle(context,entity) {
-    with(context) {
-        beginPath();              
-        lineWidth = 3;
-        var x = entity["x"];
-        var y = entity["y"];
-        //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
-    }
-}
+// //XXX: TODO Make this prettier!
+// function drawCircle(context,entity) {
+//     with(context) {
+//         beginPath();              
+//         lineWidth = 3;
+//         var x = entity["x"];
+//         var y = entity["y"];
+//         //moveTo(x,y);
+//         fillStyle = entity["colour"];
+//         strokeStyle = fillStyle;
+//         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+//         stroke();                                
+//     }
+// }
 
 //XXX: TODO Make this prettier!
-function drawSpike(context,entity) {
+function drawLines(context,entity) {
     with(context) {
-        beginPath();              
-        lineWidth = 5;
+        beginPath();
         var x = entity["x"];
         var y = entity["y"];
-        //moveTo(x,y);
+	lineWidth = 3;
+        moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-	context.fillRect(x,y,150,75);                              
+	var amt = 50;
+	if (entity["radius"]) {
+	    amt = (entity["radius"])*5;
+	}
+        lineTo(x+amt,y+amt);
+	stroke();
     }
 }
-
 
 function getNextColor() {
     colorIndex += 1;
-    if (colorIndex > 4) {
+    if (colorIndex > 3) {
 	colorIndex = 0;
     }
     return colors[colorIndex];
 }
 
 function prepEntity(entity) {
-    var nextColor = getNextColor();
 
     if (!entity["colour"]) {
         entity["colour"] = "#FF0000";
-    } else {
-	entity["colour"] = nextColor;
     }
     if (!entity["radius"]) {
         entity["radius"] = 50;
@@ -133,8 +132,7 @@ function renderFrame() {
     clearFrame();
     for (var key in world) {
         var entity = world[key];
-        drawCircle(context,prepEntity(entity));
-	drawSpike(context,prepEntity(entity));
+        drawLines(context,prepEntity(entity));
     }
 }
 
@@ -296,15 +294,15 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':getNextColor()});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':getNextColor()});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':getNextColor(),
                           'radius':10});
 });
 
@@ -326,7 +324,7 @@ function update() {
 }
 
 // 30 frames per second
-setInterval( update, 10000/30.0);
+setInterval( update, 1000/30.0);
 
 
 
