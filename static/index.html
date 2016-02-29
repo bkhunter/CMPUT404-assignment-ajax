@@ -31,22 +31,24 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
-var colors = ['green','purple','gold','white'];
-var colorIndex = 0;    
+// used for color cycling
+var colors0 = ['#192433','#204442','#6A9B9B','#91A5DB','#929DFF'];
+var colors1 = ['#0BBE30','#07F674','#63E195','#A46599','#724987'];
+var colorIndex = 0; 
+var colorCount = 1;
+var colors = colors0; 
 
-
+// Used to add to the world
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', url);
+    xhr.open('POST', url);	// Note the Post
     var response;
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
-                    //XXX: parse some JSON from the request!
-                    //XXX: Pass the data to the callback!
-		    response = JSON.parse(xhr.responseText);
-		    callback(response);
+		    response = JSON.parse(xhr.responseText); // Parse the JSON
+		    callback(response);			     // Pass data back to the response
                 }
             } 
             catch(e) {
@@ -54,16 +56,29 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
-    //XXX: POST to a URL
-    //XXX: set the mimetype and the accept headers!
-    xhr.overrideMimeType("application/json");
-    xhr.setRequestHeader('Accept', "application/json");
-    xhr.send(JSON.stringify(objects));
-    // Remember to use application/json !
+
+    xhr.overrideMimeType("application/json"); // set the mimetype
+    xhr.setRequestHeader('Accept', "application/json"); // set the header
+    xhr.send(JSON.stringify(objects));			// POST
 }
 
 
 world = {};
+
+// Draws the pretty lines
+function drawLines(context,entity) {
+    with(context) {
+        beginPath();
+        var x = entity["x"];
+        var y = entity["y"];
+	lineWidth = 4;
+        moveTo(x,y);
+        fillStyle = entity["colour"];
+        strokeStyle = fillStyle;	
+        lineTo(x+50,y+50);
+	stroke();
+    }
+}
 
 // //XXX: TODO Make this prettier!
 // function drawCircle(context,entity) {
@@ -80,28 +95,18 @@ world = {};
 //     }
 // }
 
-//XXX: TODO Make this prettier!
-function drawLines(context,entity) {
-    with(context) {
-        beginPath();
-        var x = entity["x"];
-        var y = entity["y"];
-	lineWidth = 3;
-        moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-	var amt = 50;
-	if (entity["radius"]) {
-	    amt = (entity["radius"])*5;
-	}
-        lineTo(x+amt,y+amt);
-	stroke();
-    }
-}
-
+// helper function that initializes the lines with changing pretty colours
 function getNextColor() {
     colorIndex += 1;
-    if (colorIndex > 3) {
+    if (colorIndex >= colors.length) {
+	if (colorCount%2 === 0) {
+	    colors = colors1;
+	    colorCount = 1;
+	} else {
+	    colors = colors0;
+	    colorCount = 0;
+	}
+	    
 	colorIndex = 0;
     }
     return colors[colorIndex];
@@ -124,7 +129,6 @@ function clearFrame() {
 	fillStyle = "#000";
 	fillRect(0,0,W,H);
     }
-
 }
 
 // This actually draws the frame
@@ -171,21 +175,22 @@ function getPosition(e) {
 	}
 }
 
-
+// When the mouse moves and is clicked this function takes the entity created
+// and adds it to the world JSON
 function addEntity(entity, data) {
     world[entity] = data;
     prepEntity(world[entity])
-    var url = 'http://127.0.0.1:5000/entity/' + (entity.toString() || entity)
+
+    var url = 'http://127.0.0.1:5000/entity/' + (entity.toString() || entity) // Post to here
     var objects = data
+    // this callback will update the world with JSON, and draw the next frame
     var callback = function(data) {
 	
 	world[entity] = data;
 	drawNextFrame();
-    }   
+    }
+    // Finally the function call
     var res = sendJSONXMLHTTPRequest(url, objects, callback)
-    //XXX: Send a XHTML Request that updates the entity you just  modified!
-    
-
 }
 
 var counter = 0;
@@ -292,7 +297,7 @@ mouse = (function() {
 })();
 
 // Add the application specific mouse listeners!
-//XXX: TODO Make these prettier!
+// getNextColor() initializes the lines with a pretty color
 mouse.mousedowners.push(function(x,y,clicked,e) {
     addEntityWithoutName({'x':x,'y':y,'colour':getNextColor()});
 });
@@ -306,18 +311,21 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
                           'radius':10});
 });
 
-
 function update() {
-    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
     var xhr = new XMLHttpRequest();
-    var url = 'http://127.0.0.1:5000/world';
-    xhr.open('GET', url);
+    var url = 'http://127.0.0.1:5000/world'; // URL to GET from
+    xhr.open('GET', url);	// Note the GET
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
-            if (xhr.status==200) {
-		world = JSON.parse(xhr.responseText);
-		renderFrame();
+	    try {
+		if (xhr.status==200) {
+		    world = JSON.parse(xhr.responseText); // Set the world to the new current state
+		    renderFrame();			  // Ensure the frame is re-drawn
+		}
 	    }
+	    catch(e) {
+                alert('Error: ' + e.name);
+            }
 	}
     };
     xhr.send(null);
@@ -325,8 +333,6 @@ function update() {
 
 // 30 frames per second
 setInterval( update, 1000/30.0);
-
-
 
     </script>
 </body>

@@ -20,7 +20,6 @@
 # remember to:
 #     pip install flask
 
-
 import flask
 from flask import Flask, request
 import json
@@ -71,11 +70,13 @@ def flask_post_json():
     else:
         return json.loads(request.form.keys()[0])
 
+# When given route path, redirect to index.html - where the canvas is
+# Return 301 status code, moved permanently
 @app.route("/")
 def hello():
-    '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return flask.redirect("/static/index.html")
+    return flask.redirect("/static/index.html"), 301
 
+# Creates or updates JSON at <entity> then returns it
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     data =  flask_post_json()
@@ -89,21 +90,22 @@ def update(entity):
     res = myWorld.get(entity)
     return json.dumps(res)
 
+# Displays the JSON of the world state
 @app.route("/world", methods=['POST','GET'])    
 def world():
-    '''you should probably return the world here'''
     return flask.jsonify(myWorld.world())
 
+# Gets the <entity> and return a JSON representation of it
 @app.route("/entity/<entity>")    # entity is just a variable  
 def get_entity(entity):
-    '''This is the GET version of the entity interface, return a representation of the entity'''
     ent = myWorld.get(entity)
     return flask.jsonify(ent)
 
+# Clear the world, and return a representation of it
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     myWorld.clear()
-    return flask.redirect("/")
+    return flask.jsonify(myWorld.world())
     
 
 if __name__ == "__main__":
