@@ -20,7 +20,6 @@ Contributors / Licensing
 ----------------------------------------------
 
 Contributions made by Ben Hunter are licensed under the Apache 2 license as follows:
-========================
 
    Copyright 2016 Ben Hunter
 
@@ -45,8 +44,8 @@ Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 Resources
 --------------------------------------
 **General**
- *Some code taken from Abram Hindle, Joshua Campbell, and Alex Wong via CMPUT 404 Course Materials
+  * Some code taken from Abram Hindle, Joshua Campbell, and Alex Wong via CMPUT 404 Course Materials
 
 **Canvas**
- *Gradients found via https://coolors.co/
- *Canvas tutorial at http://www.w3schools.com/html/html5_canvas.asp
+  * Gradients found via https://coolors.co/
+  * Canvas tutorial at http://www.w3schools.com/html/html5_canvas.asp
