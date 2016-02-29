@@ -71,29 +71,34 @@ function drawLines(context,entity) {
         beginPath();
         var x = entity["x"];
         var y = entity["y"];
+
+	//create gardient
+	var grd = createLinearGradient(x,y,x+50,y+50);
+	grd.addColorStop(0.3,entity["colour"]);
+	grd.addColorStop(1,"white");
+	fillStyle = grd;
+	strokeStyle = fillStyle;	
+
 	lineWidth = 4;
         moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;	
         lineTo(x+50,y+50);
 	stroke();
     }
 }
 
-// //XXX: TODO Make this prettier!
-// function drawCircle(context,entity) {
-//     with(context) {
-//         beginPath();              
-//         lineWidth = 3;
-//         var x = entity["x"];
-//         var y = entity["y"];
-//         //moveTo(x,y);
-//         fillStyle = entity["colour"];
-//         strokeStyle = fillStyle;
-//         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-//         stroke();                                
-//     }
-// }
+function drawCircle(context,entity) {
+    with(context) {
+        beginPath();              
+        lineWidth = 3;
+        var x = entity["x"];
+        var y = entity["y"];
+        //moveTo(x,y);
+        fillStyle = entity["colour"];
+        strokeStyle = fillStyle;
+        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        stroke();                                
+    }
+}
 
 // helper function that initializes the lines with changing pretty colours
 function getNextColor() {
